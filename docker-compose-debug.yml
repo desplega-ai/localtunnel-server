@@ -1,0 +1,12 @@
+services:
+  localtunnel:
+    image: ghcr.io/desplega-ai/localtunnel-server:master
+    container_name: localtunnel
+    restart: always
+    network_mode: host
+    pull_policy: always
+    command: --port 3123 --domain lt.us.desplega.ai --secure
+    environment:
+      - DEBUG=lt:*
+    ports:
+      - 3123

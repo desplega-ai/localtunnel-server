@@ -1,0 +1,26 @@
+{
+        on_demand_tls {
+                ask http://localhost:9999/allow-cert
+        }
+}
+
+:9999 {
+        respond /allow-cert 200
+}
+
+lt.us.desplega.ai {
+        reverse_proxy localhost:3123 {
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+        }
+}
+
+*.lt.us.desplega.ai {
+        tls {
+                on_demand
+        }
+        reverse_proxy localhost:3123 {
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Forwarded-Host {host}
+        }
+}
