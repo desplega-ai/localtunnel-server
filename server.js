@@ -392,19 +392,29 @@ export default function (opt) {
     server.on('upgrade', (req, socket, head) => {
         const hostname = req.headers.host;
         if (!hostname) {
-            socket.destroy();
+            socket.write('HTTP/1.1 400 Bad Request\r\n');
+            socket.write('Content-Type: text/plain\r\n');
+            socket.write('\r\n');
+            socket.end('400 - Host header is required');
             return;
         }
 
         const clientId = GetClientIdFromHostname(hostname);
         if (!clientId) {
-            socket.destroy();
+            socket.write('HTTP/1.1 400 Bad Request\r\n');
+            socket.write('Content-Type: text/plain\r\n');
+            socket.write('\r\n');
+            socket.end('400 - Invalid hostname');
             return;
         }
 
         const client = manager.getClient(clientId);
         if (!client) {
-            socket.destroy();
+            socket.write('HTTP/1.1 503 Service Unavailable\r\n');
+            socket.write('Content-Type: text/plain\r\n');
+            socket.write('X-Localtunnel-Status: Tunnel Unavailable\r\n');
+            socket.write('\r\n');
+            socket.end('503 - Tunnel Unavailable');
             return;
         }
 
