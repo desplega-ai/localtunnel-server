@@ -1,0 +1,9 @@
+# Bun configuration file
+# This file configures how Bun behaves when working with this project
+
+[install]
+# Installation settings
+# Use exact versions from bun.lock
+exact = true
+# Optional: Cache directory for faster installs
+# cache_dir = ".bun/cache"

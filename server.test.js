@@ -14,25 +14,27 @@ describe('Server', () => {
         await new Promise((resolve) => server.close(resolve));
     });
 
-    it('should redirect root requests to landing page', async () => {
+    it('should render hello page on root requests', async () => {
         const server = createServer();
         const res = await request(server).get('/');
-        assert.equal(
-            'https://localtunnel.github.io/www/',
-            res.headers.location,
-        );
+        assert.equal(res.status, 200);
+        assert.equal(res.type, 'text/html');
+        assert(res.text.includes('Localtunnel'));
+        assert(res.text.includes('Expose your localhost'));
     });
 
-    it('should support custom base domains', async () => {
+    it('should render hello page with custom base domains', async () => {
         const server = createServer({
             domain: 'domain.example.com',
         });
 
         const res = await request(server).get('/');
-        assert.equal(
-            'https://localtunnel.github.io/www/',
-            res.headers.location,
-        );
+        assert.equal(res.status, 200);
+        assert.equal(res.type, 'text/html');
+        assert(res.text.includes('Localtunnel'));
+        assert(res.text.includes('Server:'));
+        // The page should show the server host/port information
+        assert(res.text.includes('curl'));
     });
 
     it('reject long domain name requests', async () => {

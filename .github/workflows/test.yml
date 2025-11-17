@@ -1,0 +1,47 @@
+name: Tests
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        package-manager: [bun, npm]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup Bun
+        if: matrix.package-manager == 'bun'
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (Bun)
+        if: matrix.package-manager == 'bun'
+        run: bun install
+
+      - name: Install dependencies (npm)
+        if: matrix.package-manager == 'npm'
+        run: npm install
+
+      - name: Run tests (Bun)
+        if: matrix.package-manager == 'bun'
+        run: bun run test
+
+      - name: Run tests (npm)
+        if: matrix.package-manager == 'npm'
+        run: npm test

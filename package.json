@@ -3,11 +3,11 @@
     "name": "localtunnel-server",
     "type": "module",
     "description": "expose localhost to the world",
-    "version": "0.0.8",
+    "version": "0.1.0",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git://github.com/localtunnel/server.git"
+        "url": "git://github.com/desplega-ai/localtunnel-server.git"
     },
     "dependencies": {
         "book": "1.3.3",
@@ -35,5 +35,8 @@
         "start": "node ./bin/server.js",
         "start-esm": "node -r esm ./bin/server.js",
         "dev": "node-dev ./bin/server.js --port 3000"
+    },
+    "engines": {
+        "bun": ">=1.0.0"
     }
 }
