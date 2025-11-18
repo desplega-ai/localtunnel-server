@@ -390,6 +390,7 @@ export default function (opt) {
     });
 
     server.on('upgrade', (req, socket, head) => {
+        debug('websocket upgrade request: %s %s', req.url, req.headers.host);
         const hostname = req.headers.host;
         if (!hostname) {
             socket.write('HTTP/1.1 400 Bad Request\r\n');
@@ -420,7 +421,10 @@ export default function (opt) {
 
         // Validate authentication if required
         if (!validateTunnelAuth(req, client)) {
-            socket.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Localtunnel"' });
+            socket.write('HTTP/1.1 401 Unauthorized\r\n');
+            socket.write('WWW-Authenticate: Basic realm="Localtunnel"\r\n');
+            socket.write('Content-Type: text/plain\r\n');
+            socket.write('\r\n');
             socket.end('401 - Unauthorized');
             return;
         }
