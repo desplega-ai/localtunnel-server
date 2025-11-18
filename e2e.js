@@ -17,6 +17,9 @@ const host = hostArg ? hostArg.split('=')[1] : DEFAULT_HOST;
 const subdomainArg = args.find(arg => arg.startsWith('--subdomain='));
 const subdomain = subdomainArg ? subdomainArg.split('=')[1] : 'test';
 
+const authParg = args.find(arg => arg.startsWith('--auth'));
+const useAuth = !!authParg;
+
 console.log(`🚀 Starting E2E test against: ${host} (subdomain: ${subdomain})`);
 console.log(`📡 Local server port: ${PORT}\n`);
 
@@ -81,17 +84,41 @@ server.listen(PORT, async () => {
       port: PORT,
       host: host,
       subdomain,
+      auth: useAuth
     });
 
     console.log(`✓ Tunnel created: ${tunnel.url}\n`);
 
+    // Extract credentials from URL if present (for auth mode)
+    let cleanUrl = tunnel.url;
+    let authHeader = null;
+
+    try {
+      const urlObj = new URL(tunnel.url);
+      if (urlObj.username && urlObj.password) {
+        // Create Basic Auth header
+        const credentials = Buffer.from(`${urlObj.username}:${urlObj.password}`).toString('base64');
+        authHeader = `Basic ${credentials}`;
+        // Remove credentials from URL for fetch
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}`;
+        console.log(`  Auth enabled: ${urlObj.username}:${'*'.repeat(urlObj.password.length)}\n`);
+      }
+    } catch (e) {
+      // URL parsing failed, use original URL
+    }
+
     // Test HTTP endpoint
     console.log('📝 Testing HTTP endpoint...');
     try {
-      const httpUrl = `${tunnel.url}/http`;
+      const httpUrl = `${cleanUrl}/http`;
       console.log(`  GET ${httpUrl}`);
 
-      const httpResponse = await fetch(httpUrl);
+      const fetchOptions = {};
+      if (authHeader) {
+        fetchOptions.headers = { 'Authorization': authHeader };
+      }
+
+      const httpResponse = await fetch(httpUrl, fetchOptions);
       const httpData = await httpResponse.json();
 
       console.log(`  ✓ Status: ${httpResponse.status}`);
@@ -107,13 +134,39 @@ server.listen(PORT, async () => {
       throw error;
     }
 
+    // Test unauthenticated access is blocked (auth mode only)
+    if (authHeader) {
+      console.log('📝 Testing unauthorized access is blocked...');
+      try {
+        const httpUrl = `${cleanUrl}/http`;
+        console.log(`  GET ${httpUrl} (without auth)`);
+
+        const httpResponse = await fetch(httpUrl); // No auth header
+
+        if (httpResponse.status === 401) {
+          console.log(`  ✓ Status: ${httpResponse.status} Unauthorized`);
+          console.log('  ✅ Auth protection PASSED\n');
+        } else {
+          throw new Error(`Expected 401, got ${httpResponse.status} - Auth protection FAILED!`);
+        }
+      } catch (error) {
+        console.error('  ❌ Auth protection test FAILED:', error.message);
+        throw error;
+      }
+    }
+
     // Test WebSocket endpoint
     console.log('📝 Testing WebSocket endpoint...');
     await new Promise((resolve, reject) => {
-      const wsUrl = tunnel.url.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+      const wsUrl = cleanUrl.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
       console.log(`  CONNECT ${wsUrl}`);
 
-      const ws = new WebSocket(wsUrl);
+      const wsOptions = {};
+      if (authHeader) {
+        wsOptions.headers = { 'Authorization': authHeader };
+      }
+
+      const ws = new WebSocket(wsUrl, wsOptions);
       let receivedMessages = 0;
       const timeout = setTimeout(() => {
         ws.close();

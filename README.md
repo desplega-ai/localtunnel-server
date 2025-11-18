@@ -1,10 +1,41 @@
 # localtunnel-server
 
-[![Build Status](https://travis-ci.org/localtunnel/server.svg?branch=master)](https://travis-ci.org/localtunnel/server)
+> **Note:** This is a fork of the original [localtunnel-server](https://github.com/localtunnel/server) with improvements and bug fixes.
 
 localtunnel exposes your localhost to the world for easy testing and sharing! No need to mess with DNS or deploy just to have others test out your changes.
 
 This repo is the server component. If you are just looking for the CLI localtunnel app, see (https://github.com/localtunnel/localtunnel).
+
+## What's New in This Fork
+
+- ✅ **Fixed subdomain validation** - Now correctly accepts 4-5 character subdomains with hyphens (e.g., `my-s`, `a-b-c`)
+- ✅ **Enhanced e2e tests** - Full authentication testing with proper Basic Auth header handling
+- ✅ **CI/CD integration** - Automated e2e tests across multiple hosts with GitHub Actions
+- ✅ **Better auth support** - Fixed fetch API credential handling in e2e tests
+
+### Bug Fixes Details
+
+#### Subdomain Validation Regex Fix
+
+The original regex incorrectly rejected valid 4-5 character subdomains containing hyphens. The fix changes:
+
+**Before (buggy):**
+```regex
+/^(?:[a-z0-9][a-z0-9\-]{4,63}[a-z0-9]|[a-z0-9]{4,63})$/
+```
+- Required 6-65 characters for subdomains with hyphens
+- Rejected: `my-s`, `a-b-c`, etc.
+
+**After (fixed):**
+```regex
+/^(?:[a-z0-9][a-z0-9\-]{2,61}[a-z0-9]|[a-z0-9]{4,63})$/
+```
+- Now correctly allows 4-63 characters for all subdomains
+- Accepts: `my-s`, `a-b-c`, `test`, `my-subdomain`, etc.
+
+#### E2E Authentication Fix
+
+The `fetch()` API doesn't allow credentials embedded in URLs. The fix extracts credentials from URLs like `https://user:pass@domain.com` and converts them to proper Basic Auth headers, enabling proper authentication testing.
 
 ## overview
 
@@ -19,7 +50,7 @@ The above are important as the client will ask the server for a subdomain under 
 
 ```shell
 # pick a place where the files will live
-git clone git://github.com/TheBoroer/localtunnel-server.git
+git clone https://github.com/YOUR_USERNAME/localtunnel-server.git
 cd localtunnel-server
 
 # install dependencies using bun (or npm/yarn if preferred)
@@ -139,6 +170,31 @@ npm run dev
 - `bun run start` - Start the server
 - `bun run dev` - Start server in development mode with file watching
 - `bun test` - Run test suite
+
+### End-to-End Testing
+
+This project includes comprehensive e2e tests that verify the server works correctly with real tunnel connections.
+
+```bash
+# Run e2e tests against a server (without authentication)
+node e2e.js --host=https://lt.desplega.ai --subdomain=test
+
+# Run e2e tests with authentication enabled
+node e2e.js --host=https://lt.desplega.ai --subdomain=test --auth
+```
+
+The e2e tests verify:
+- HTTP endpoint connectivity
+- WebSocket endpoint connectivity
+- Authentication protection (401 for unauthorized requests when auth is enabled)
+
+#### CI/CD
+
+The project uses GitHub Actions to automatically run e2e tests on every push and pull request. Tests run in a matrix across:
+- Multiple hosts: `lt.desplega.ai` and `lt.us.desplega.ai`
+- With and without authentication
+
+See `.github/workflows/e2e.yml` for the full configuration.
 
 ## Deploy
 
