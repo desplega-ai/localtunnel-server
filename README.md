@@ -4,7 +4,7 @@
 
 localtunnel exposes your localhost to the world for easy testing and sharing! No need to mess with DNS or deploy just to have others test out your changes.
 
-This repo is the server component. If you are just looking for the CLI localtunnel app, see (https://github.com/localtunnel/localtunnel).
+This repo is the server component. If you are just looking for the CLI localtunnel app, see (https://github.com/desplega-ai/localtunnel).
 
 ## What's New in This Fork
 
@@ -39,7 +39,7 @@ The `fetch()` API doesn't allow credentials embedded in URLs. The fix extracts c
 
 ## overview
 
-The default localtunnel client connects to the `localtunnel.me` server. You can, however, easily set up and run your own server. In order to run your own localtunnel server you must ensure that your server can meet the following requirements:
+The default localtunnel client connects to the `lt.desplega.ai` server. You can, however, easily set up and run your own server. In order to run your own localtunnel server you must ensure that your server can meet the following requirements:
 
 -   You can set up DNS entries for your `domain.tld` and `*.domain.tld` (or `sub.domain.tld` and `*.sub.domain.tld`).
 -   The server can accept incoming TCP connections for any non-root TCP port (i.e. ports over 1000).
@@ -49,20 +49,11 @@ The above are important as the client will ask the server for a subdomain under 
 #### setup
 
 ```shell
-# pick a place where the files will live
-git clone https://github.com/YOUR_USERNAME/localtunnel-server.git
+git clone https://github.com/desplega-ai/localtunnel-server.git
 cd localtunnel-server
-
-# install dependencies using bun (or npm/yarn if preferred)
-bun install
-
-# server set to run on port 1234
-bun run start --port 1234
+npm install
+npm run start -- --port 3007 --host localhost:3007
 ```
-
-**Note:** This project uses [Bun](https://bun.sh) as the primary package manager. You can also use `npm` or `yarn` if you prefer, as the project is compatible with all Node.js package managers. The `bun.lock` file should be committed to version control.
-
-For detailed Bun setup instructions, see [BUN_SETUP.md](./BUN_SETUP.md).
 
 The localtunnel server is now running and waiting for client requests on port 1234. You will most likely want to set up a reverse proxy to listen on port 80 (or start localtunnel on port 80 directly).
 
@@ -70,15 +61,15 @@ The localtunnel server is now running and waiting for client requests on port 12
 
 #### use your server
 
-You can now use your domain with the `--host` flag for the `lt` client.
+You can now use your domain with the `--host` flag for the `@desplega.ai/localtunnel` client:
 
 ```shell
-lt --host http://sub.example.tld:1234 --port 9000
+npx @desplega.ai/localtunnel --host http://sub.example.tld:1234 --port 9000
 ```
 
 You will be assigned a URL similar to `heavy-puma-9.sub.example.com:1234`.
 
-If your server is acting as a reverse proxy (i.e. nginx) and is able to listen on port 80, then you do not need the `:1234` part of the hostname for the `lt` client.
+If your server is acting as a reverse proxy (i.e. nginx) and is able to listen on port 80, then you do not need the `:1234` part of the hostname for the `@desplega.ai/localtunnel` client.
 
 ## Authentication (Optional)
 
@@ -145,31 +136,22 @@ General server information.
 This project uses **Mocha** for testing.
 
 ```bash
-# Run all tests with bun
-bun run test
-
-# Or using npm
-npm test
-
-# Or directly with Mocha via bun
-bun mocha --check-leaks '*.test.js' '**/*.test.js'
+# Run all tests
+npm run test
 ```
 
 ### Running in development mode
 
 ```bash
-# Watch mode with bun
-bun run dev
-
-# Or using npm
-npm run dev
+# Watch mode with npm
+npm run dev -- --port 3007 --host localhost:3007
 ```
 
 ### Available Scripts
 
-- `bun run start` - Start the server
-- `bun run dev` - Start server in development mode with file watching
-- `bun test` - Run test suite
+- `npm run start` - Start the server
+- `npm run dev` - Start server in development mode with file watching
+- `npm test` - Run test suite
 
 ### End-to-End Testing
 
@@ -194,13 +176,15 @@ The project uses GitHub Actions to automatically run e2e tests on every push and
 - Multiple hosts: `lt.desplega.ai` and `lt.us.desplega.ai`
 - With and without authentication
 
+**Important:** Tests for the same host run sequentially (not in parallel) to avoid subdomain conflicts, since all tests use the subdomain `test`. However, tests for different hosts can run in parallel.
+
 See `.github/workflows/e2e.yml` for the full configuration.
 
 ## Deploy
 
 ### Docker Deployment
 
-The project includes an optimized Dockerfile using the latest **Bun runtime** and Node.js. This provides:
+The project includes an optimized Dockerfile using the latest **npm runtime** and Node.js. This provides:
 
 - ✅ Smaller image size (~500MB vs ~700MB for Node)
 - ✅ Faster startup times

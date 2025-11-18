@@ -23,6 +23,12 @@ jobs:
 
     name: E2E (${{ matrix.host }} / auth=${{ matrix.auth }})
 
+    # Prevent concurrent runs on the same host+subdomain to avoid conflicts
+    # Jobs for different hosts can run in parallel
+    concurrency:
+      group: e2e-${{ matrix.host }}-test
+      cancel-in-progress: false
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

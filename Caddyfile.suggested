@@ -9,18 +9,13 @@
 }
 
 lt.us.desplega.ai {
-        reverse_proxy localhost:3123 {
-                header_up X-Forwarded-Proto {scheme}
-                header_up X-Forwarded-Host {host}
-        }
+        reverse_proxy localhost:3123
 }
 
 *.lt.us.desplega.ai {
         tls {
                 on_demand
         }
-        reverse_proxy localhost:3123 {
-                header_up X-Forwarded-Proto {scheme}
-                header_up X-Forwarded-Host {host}
-        }
+
+        reverse_proxy localhost:3123
 }
