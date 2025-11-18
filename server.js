@@ -45,7 +45,10 @@ function validateTunnelAuth(req, client) {
 export default function (opt) {
     opt = opt || {};
 
-    const validHosts = opt.domain ? [opt.domain] : undefined;
+    // Extract domain without port for tldjs subdomain parsing
+    // opt.domain might be "localhost:3007" or "example.com", we need just the domain part for tldjs
+    const domainWithoutPort = opt.domain ? opt.domain.split(':')[0] : undefined;
+    const validHosts = domainWithoutPort ? [domainWithoutPort] : undefined;
     const myTldjs = tldjs.fromUserSettings({ validHosts });
     const landingPage = opt.landing || 'https://localtunnel.github.io/www/';
 
