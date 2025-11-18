@@ -1,5 +1,5 @@
-# Use the latest Bun image (includes Node.js)
-FROM oven/bun:latest
+# Use Node.js 20 (latest LTS)
+FROM node:20-slim
 
 # Install additional dependencies
 RUN apt-get update && apt-get install -y \
@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lock ./
+COPY package.json package-lock.json ./
 
 # Install dependencies in production mode
-RUN bun install --production
+RUN npm ci --production
 
 # Copy application code
 COPY . /app
@@ -24,4 +24,4 @@ ENV NODE_ENV production
 EXPOSE 3000
 
 # Run the server
-ENTRYPOINT ["bun", "run", "start"]
+ENTRYPOINT ["node", "./bin/server.js"]
