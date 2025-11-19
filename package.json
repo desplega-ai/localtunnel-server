@@ -39,6 +39,6 @@
         "test": "mocha --check-leaks '*.test.js' '**/*.test.js'",
         "start": "node ./bin/server.js",
         "start-esm": "node -r esm ./bin/server.js",
-        "dev": "node-dev ./bin/server.js --port 3000"
+        "dev": "node-dev ./bin/server.js"
     }
 }
