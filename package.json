@@ -3,7 +3,7 @@
     "name": "@desplega.ai/localtunnel-server",
     "type": "module",
     "description": "expose localhost to the world (desplega.ai fork)",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "license": "MIT",
     "repository": {
         "type": "git",

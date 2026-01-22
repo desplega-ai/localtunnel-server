@@ -334,7 +334,17 @@ export default function (opt) {
             authOptions.password = ctx.query.password || generatePassword();
         }
 
-        const info = await manager.newClient(reqId, ctx, authOptions);
+        let info;
+        try {
+            info = await manager.newClient(reqId, ctx, authOptions);
+        } catch (err) {
+            if (err.code === 'SUBDOMAIN_IN_USE') {
+                ctx.status = 409;
+                ctx.body = { message: err.message };
+                return;
+            }
+            throw err;
+        }
 
         let url = schema + '://' + info.id + '.' + opt.domain || ctx.request.host;
 
